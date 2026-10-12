@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr.Doc — Document Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- ─── Sidebar ──────────────────────────────────────────────── -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <!-- DROP YOUR tata.png INTO static/images/ — it will show automatically -->
+                    <img src="{{ url_for('static', filename='images/tata.png') }}" alt="Deva Dharshan D"
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                    <div class="logo-fallback" style="display:none;">
+                        <i class="bi bi-building"></i>
+                    </div>
+                </div>
+                <div class="logo-text-group">
+                    <span class="logo-text">Dr.Doc</span>
+                    <span class="logo-subtitle">by Deva Dharshan D</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Switcher -->
+        <div class="tab-switcher">
+            <button class="tab-btn active" data-tab="chat" id="tab-chat">
+                <i class="bi bi-chat-dots-fill"></i>
+                Chat
+            </button>
+            <button class="tab-btn" data-tab="feed" id="tab-feed">
+                <i class="bi bi-cloud-arrow-up-fill"></i>
+                Feed
+            </button>
+        </div>
+
+        <!-- Chat History -->
+        <div class="chat-history-section">
+            <div class="section-label">
+                <i class="bi bi-clock-history"></i> Chat History
+            </div>
+            <button class="new-chat-btn" id="new-chat-btn">
+                <i class="bi bi-plus-lg"></i> New Chat
+            </button>
+            <div id="chat-history-list" class="chat-history-list"></div>
+        </div>
+
+        <!-- Document List -->
+        <div class="doc-list-section">
+            <div class="section-label">
+                <i class="bi bi-database"></i> Knowledge Base
+            </div>
+            <div id="doc-list" class="doc-list">
+                <div class="empty-state-small">
+                    <i class="bi bi-inbox"></i>
+                    <span>No documents yet</span>
+                </div>
+            </div>
+            <div class="doc-stats" id="doc-stats"></div>
+        </div>
+
+        <div class="sidebar-footer">
+            <button class="settings-btn" id="settings-btn" title="Voice Settings">
+                <i class="bi bi-gear"></i>
+                Settings
+            </button>
+            <button class="clear-btn" id="clear-all-btn" title="Clear all documents">
+                <i class="bi bi-trash3"></i>
+                Clear All
+            </button>
+        </div>
+    </aside>
+
+    <!-- ─── Main Content ──────────────────────────────────────────── -->
+    <main class="main-content">
+
+        <!-- ═══ Chat Section ═══ -->
+        <section class="section-panel active" id="section-chat">
+            <div class="chat-container">
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Welcome State -->
+                    <div class="welcome-screen" id="welcome-screen">
+                        <div class="welcome-icon">
+                            <div class="doctor-avatar-large">
+                                <i class="bi bi-file-earmark-medical-fill"></i>
+                            </div>
+                        </div>
+                        <h1 class="welcome-title">Hello! I'm Dr.Doc</h1>
+                        <p class="welcome-subtitle">Your intelligent document assistant by <strong>Deva Dharshan D</strong>.<br>Upload documents in the <strong>Feed</strong> tab, then ask me anything. Or just say hi!</p>
+
+                        <div class="welcome-features">
+                            <div class="feature-card">
+                                <i class="bi bi-file-earmark-pdf-fill feature-icon text-danger"></i>
+                                <span>PDF Analysis</span>
+                            </div>
+                            <div class="feature-card">
+                                <i class="bi bi-file-earmark-word-fill feature-icon text-primary"></i>
+                                <span>Word Docs</span>
+                            </div>
+                            <div class="feature-card">
+                                <i class="bi bi-file-earmark-text-fill feature-icon text-success"></i>
+                                <span>Text Files</span>
+                            </div>
+                            <div class="feature-card">
+                                <i class="bi bi-clipboard2-data-fill feature-icon text-warning"></i>
+                                <span>Paste Text</span>
+                            </div>
+                            <div class="feature-card">
+                                <i class="bi bi-mic-fill feature-icon" style="color:#a855f7"></i>
+                                <span>Voice Chat</span>
+                            </div>
+                            <div class="feature-card">
+                                <i class="bi bi-image feature-icon" style="color:#06b6d4"></i>
+                                <span>Image Q&A</span>
+                            </div>
+                        </div>
+
+                        <div class="sample-prompts" id="sample-prompts">
+                            <div class="prompts-label">
+                                <i class="bi bi-lightning-charge-fill"></i> Quick actions
+                            </div>
+                            <div class="prompts-grid" id="prompts-grid"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Input -->
+                <div class="chat-input-area">
+                    <!-- Image preview bar (shows when image is selected) -->
+                    <div class="image-preview-bar" id="image-preview-bar" style="display:none;">
+                        <img id="image-preview-thumb" src="" alt="Preview">
+                        <span id="image-preview-name">image.png</span>
+                        <button id="image-preview-remove" class="image-preview-remove" title="Remove image">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    <div class="input-wrapper">
+                        <!-- Image upload button -->
+                        <button class="input-action-btn" id="image-btn" title="Upload image to ask about">
+                            <i class="bi bi-image"></i>
+                        </button>
+                        <input type="file" id="image-input" accept="image/*" hidden>
+                        <!-- Mic button -->
+                        <button class="input-action-btn" id="mic-btn" title="Voice input">
+                            <i class="bi bi-mic-fill"></i>
+                        </button>
+                        <textarea id="chat-input" placeholder="Ask Dr.Doc anything..." rows="1"></textarea>
+                        <button class="send-btn" id="send-btn" disabled title="Send message">
+                            <i class="bi bi-send-fill"></i>
+                        </button>
+                    </div>
+                    <div class="input-hint">
+                        <i class="bi bi-keyboard"></i> Enter to send · Shift+Enter for new line
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ Feed Section ═══ -->
+        <section class="section-panel" id="section-feed">
+            <div class="feed-container">
+                <div class="feed-header">
+                    <div class="feed-header-icon">
+                        <i class="bi bi-cloud-arrow-up-fill"></i>
+                    </div>
+                    <h2>Feed Your Knowledge Base</h2>
+                    <p>Upload documents or paste text to build your AI-powered knowledge base</p>
+                </div>
+
+                <!-- Upload Zone -->
+                <div class="upload-zone" id="upload-zone">
+                    <div class="upload-zone-inner">
+                        <div class="upload-icon">
+                            <i class="bi bi-cloud-upload"></i>
+                        </div>
+                        <h3>Drag & drop files here</h3>
+                        <p>or click to browse</p>
+                        <div class="upload-formats">
+                            <span class="format-badge"><i class="bi bi-filetype-pdf"></i> PDF</span>
+                            <span class="format-badge"><i class="bi bi-filetype-docx"></i> DOCX</span>
+                            <span class="format-badge"><i class="bi bi-filetype-txt"></i> TXT</span>
+                        </div>
+                        <input type="file" id="file-input" multiple accept=".pdf,.docx,.doc,.txt" hidden>
+                    </div>
+                </div>
+
+                <!-- File Queue -->
+                <div class="file-queue" id="file-queue" style="display:none;">
+                    <div class="queue-header">
+                        <span class="queue-title"><i class="bi bi-collection"></i> Selected Files</span>
+                        <button class="queue-clear" id="queue-clear"><i class="bi bi-x-lg"></i> Clear</button>
+                    </div>
+                    <div class="queue-list" id="queue-list"></div>
+                </div>
+
+                <!-- Paste Section -->
+                <div class="paste-section">
+                    <div class="paste-header">
+                        <i class="bi bi-clipboard2-plus"></i>
+                        <span>Or paste text directly</span>
+                    </div>
+                    <textarea id="paste-text" placeholder="Paste your text content here..." rows="6"></textarea>
+                </div>
+
+                <!-- Upload Button -->
+                <button class="upload-btn" id="upload-btn" disabled>
+                    <span class="btn-text"><i class="bi bi-cpu"></i> Process & Generate Embeddings</span>
+                    <span class="btn-loader" style="display:none;">
+                        <div class="spinner"></div>
+                        Processing...
+                    </span>
+                </button>
+
+                <!-- Upload Progress -->
+                <div class="upload-progress" id="upload-progress" style="display:none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div class="progress-text" id="progress-text">Generating embeddings...</div>
+                </div>
+
+                <!-- Results -->
+                <div class="upload-results" id="upload-results" style="display:none;"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Voice Settings Modal -->
+    <div class="settings-overlay" id="settings-overlay" style="display:none;">
+        <div class="settings-modal">
+            <div class="settings-header">
+                <h3><i class="bi bi-gear"></i> Voice Settings</h3>
+                <button class="settings-close" id="settings-close"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="settings-body">
+                <div class="setting-row">
+                    <label><i class="bi bi-person-voice"></i> Voice</label>
+                    <select id="voice-select"></select>
+                </div>
+                <div class="setting-row">
+                    <label><i class="bi bi-speedometer2"></i> Speed</label>
+                    <input type="range" id="voice-rate" min="0.5" max="2" step="0.1" value="1">
+                    <span id="voice-rate-val">1.0x</span>
+                </div>
+                <div class="setting-row">
+                    <label><i class="bi bi-music-note-beamed"></i> Pitch</label>
+                    <input type="range" id="voice-pitch" min="0.5" max="2" step="0.1" value="1">
+                    <span id="voice-pitch-val">1.0</span>
+                </div>
+                <div class="setting-row">
+                    <label><i class="bi bi-volume-up"></i> Auto-speak replies</label>
+                    <input type="checkbox" id="auto-speak">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
